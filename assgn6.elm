@@ -19,14 +19,14 @@ type Value
 type alias Env = (Dict String Value)
 
 topEnv : Env
-topEnv = (fromList [("true", (BoolV True)),
-                    ("false", (BoolV False)),
-                    ("+", (PrimV valAdd)),
-                    ("-", (PrimV valSub)),
-                    ("*", (PrimV valMult)),
-                    ("/", (PrimV valDiv)),
-                    ("<=", (PrimV valLeq)),
-                    ("equal?", (PrimV valEqual))])
+topEnv = (fromList [("true", BoolV True),
+                    ("false", BoolV False),
+                    ("+", PrimV valAdd),
+                    ("-", PrimV valSub),
+                    ("*", PrimV valMult),
+                    ("/", PrimV valDiv),
+                    ("<=", PrimV valLeq),
+                    ("equal?", PrimV valEqual)])
 
 
 -- top-level functions
