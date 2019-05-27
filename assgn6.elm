@@ -16,7 +16,7 @@ type Value
   | PrimV (Value -> Value -> Result String Value)
   | CloV (List String) ExprC Env
 
-type alias Env = (Dict String Value)
+type alias Env = Dict String Value
 
 topEnv : Env
 topEnv = (fromList [("true", BoolV True),
