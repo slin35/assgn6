@@ -1,6 +1,7 @@
 -- TO DO: test cases, interp
 
 -- use this to print output after compilation
+import Dict exposing (..)
 import Html exposing (text)
 
 main =
@@ -25,6 +26,38 @@ type Value
   | BoolV Bool
   | StringV String
   | PrimV (Value -> Value -> Result String Value)
+
+type alias Env = (Dict String Value)
+
+topEnv : Env
+topEnv = (fromList [("true", (BoolV True)),
+                    ("false", (BoolV False)),
+                    ("+", (PrimV valAdd)),
+                    ("-", (PrimV valSub)),
+                    ("*", (PrimV valMult)),
+                    ("/", (PrimV valDiv)),
+                    ("<=", (PrimV valLeq)),
+                    ("equal?", (PrimV valEqual))])
+
+
+-- top-level functions
+interp : ExprC -> Env -> Result String Value
+interp e env =
+  case e of
+    (NumC n) -> Ok (NumV n)
+    (StringC str) -> Ok (StringV str)
+    (IdC id) -> (lookup id env)
+    _ -> Err "exp not supported"
+
+
+-- helper functions
+lookup : String -> Env -> Result String Value
+lookup id env =
+  case (get id env) of
+    Just val ->
+      Ok val
+    Nothing -> 
+      Err "unbound identifier"
 
 
 -- primitive operations
