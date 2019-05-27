@@ -2,6 +2,7 @@
 
 -- use this to print output after compilation
 import Dict exposing (..)
+import List exposing (length)
 import Html exposing (text)
 
 main =
@@ -20,12 +21,12 @@ type ExprC
   | LamC (List String) ExprC
   | AppC ExprC (List ExprC)
 
--- holding off on CloV for now
 type Value
   = NumV Float
   | BoolV Bool
   | StringV String
   | PrimV (Value -> Value -> Result String Value)
+  | CloV (List String) ExprC Env
 
 type alias Env = (Dict String Value)
 
@@ -44,8 +45,8 @@ topEnv = (fromList [("true", (BoolV True)),
 interp : ExprC -> Env -> Result String Value
 interp e env =
   case e of
-    (NumC n) -> Ok (NumV n)
-    (StringC str) -> Ok (StringV str)
+    (NumC n) -> (NumV n)
+    (StringC str) -> (StringV str)
     (IdC id) -> (lookup id env)
     (IfC testt thenn elsee) ->
       case (interp testt env) of
@@ -54,7 +55,15 @@ interp e env =
           then (interp thenn env)
           else (interp elsee env)
         _ -> Err "test clause not boolean"
-    _ -> Err "exp not supported"
+    (LamC params body) -> (CloV params body env)
+    (AppC fun args) ->
+      case (interp fun env) of
+        (PrimV op) ->
+          if (length args) == 2
+          then (op (interp (head args) env)
+                   (interp (tail args) env))
+          else Err "primitive operation takes two arguments"
+        _ -> Err "not supported"
 
 
 -- helper functions
