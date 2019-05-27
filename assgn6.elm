@@ -1,17 +1,6 @@
--- TO DO: test cases, interp
-
--- use this to print output after compilation
 import Dict exposing (..)
-import Html exposing (text)
-
-main =
-  text "hello world"
-
 
 -- type definitions
--- NOTE: on 'custom types' tutorial page, there are two approaches:
--- streamlined type defs (as seen below) or more verbose 'record' based style.
--- downside of streamlined version is you must use case statements to access fields.
 type ExprC
   = NumC Float
   | IdC String
@@ -41,6 +30,8 @@ topEnv = (fromList [("true", (BoolV True)),
 
 
 -- top-level functions
+
+-- interprets an expression
 interp : ExprC -> Env -> Result String Value
 interp e env =
   case e of
@@ -96,8 +87,9 @@ extendEnv env strs vals =
       newBindings)
 
 
-
 -- primitive operations
+
+-- adds two values
 valAdd : Value -> Value -> Result String Value
 valAdd l r =
   case (l, r) of
@@ -106,6 +98,7 @@ valAdd l r =
     _ ->
       Err "operand not a number"
 
+-- subtracts two values
 valSub : Value -> Value -> Result String Value
 valSub l r =
   case (l, r) of
@@ -114,6 +107,7 @@ valSub l r =
     _ ->
       Err "operand not a number"
 
+-- multiplies two values
 valMult : Value -> Value -> Result String Value
 valMult l r =
   case (l, r) of
@@ -122,6 +116,7 @@ valMult l r =
     _ ->
       Err "operand not a number"
 
+-- divides two values
 valDiv : Value -> Value -> Result String Value
 valDiv l r =
   case (l, r) of
@@ -132,6 +127,7 @@ valDiv l r =
     _ ->
       Err "operand not a number"
 
+-- compares two values
 valLeq : Value -> Value -> Result String Value
 valLeq l r =
   case (l, r) of
@@ -140,6 +136,7 @@ valLeq l r =
     _ ->
       Err "operand not a number"
 
+-- checks equality of two values
 valEqual : Value -> Value -> Result String Value
 valEqual l r =
   case (l, r) of
