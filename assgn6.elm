@@ -35,30 +35,30 @@ topEnv = (fromList [("true", (BoolV True)),
 interp : ExprC -> Env -> Result String Value
 interp e env =
   case e of
-    (NumC n) -> (NumV n)
-    (StringC str) -> (StringV str)
-    (IdC id) -> (lookup id env)
-    (IfC testt thenn elsee) ->
-      case (interp testt env) of
-        (BoolV bool) ->
+    NumC n -> NumV n
+    StringC str -> StringV str
+    IdC id -> lookup id env
+    IfC testt thenn elsee ->
+      case interp testt env of
+        BoolV bool ->
           if bool
-          then (interp thenn env)
-          else (interp elsee env)
+          then interp thenn env
+          else interp elsee env
         _ -> Err "test clause not boolean"
-    (LamC params body) -> (CloV params body env)
-    (AppC fun app-args) ->
+    LamC params body -> CloV params body env
+    AppC fun app-args ->
       case (interp fun env) of
-        (PrimV op) ->
-          if (length app-args) == 2
-          then (op (interp (head app-args) env)
-                   (interp (tail app-args) env))
+        PrimV op ->
+          if length app-args == 2
+          then op (interp (head app-args) env)
+                  (interp (tail app-args) env)
           else Err "primitive operation takes two arguments"
-        (CloV clo-args body clo-env) ->
-          if (length clo-args) == (length app-args)
+        CloV clo-args body clo-env ->
+          if length clo-args == length app-args
           then let
-            argvals = (map (\arg -> interp arg env) app-args)
+            argvals = map (\arg -> interp arg env) app-args
             let
-              newEnv = (extendEnv clo-env clo-args argvals)
+              newEnv = extendEnv clo-env clo-args argvals
               in interp body newEnv
           else Err "arity mismatch"
         _ -> Err "not supported"
@@ -69,7 +69,7 @@ interp e env =
 -- returns id from environment
 lookup : String -> Env -> Result String Value
 lookup id env =
-  case (get id env) of
+  case get id env of
     Just val ->
       Ok val
     Nothing -> 
@@ -82,9 +82,9 @@ extendEnv : Env -> (List String) -> (List Value) -> Env
 extendEnv env strs vals =
   let
     newBindings = map2 (,) strs vals
-  in (foldl (\(str, val) ->
-            (insert str val env))
-      newBindings)
+  in foldl (\(str, val) ->
+            insert str val env)
+      newBindings
 
 
 -- primitive operations
@@ -93,8 +93,8 @@ extendEnv env strs vals =
 valAdd : Value -> Value -> Result String Value
 valAdd l r =
   case (l, r) of
-    ((NumV lval), (NumV rval)) ->
-      Ok (NumV (lval + rval))
+    (NumV lval, NumV rval) ->
+      Ok (NumV lval + rval)
     _ ->
       Err "operand not a number"
 
@@ -102,8 +102,8 @@ valAdd l r =
 valSub : Value -> Value -> Result String Value
 valSub l r =
   case (l, r) of
-    ((NumV lval), (NumV rval)) ->
-      Ok (NumV (lval - rval))
+    (NumV lval, NumV rval) ->
+      Ok (NumV lval - rval)
     _ ->
       Err "operand not a number"
 
@@ -111,8 +111,8 @@ valSub l r =
 valMult : Value -> Value -> Result String Value
 valMult l r =
   case (l, r) of
-    ((NumV lval), (NumV rval)) ->
-      Ok (NumV (lval * rval))
+    (NumV lval, NumV rval) ->
+      Ok (NumV lval * rval)
     _ ->
       Err "operand not a number"
 
@@ -120,10 +120,10 @@ valMult l r =
 valDiv : Value -> Value -> Result String Value
 valDiv l r =
   case (l, r) of
-    ((NumV lval), (NumV rval)) ->
+    (NumV lval, NumV rval) ->
       if rval == 0
       then Err "divide by zero" 
-      else Ok (NumV (lval - rval))
+      else Ok (NumV lval - rval)
     _ ->
       Err "operand not a number"
 
@@ -131,8 +131,8 @@ valDiv l r =
 valLeq : Value -> Value -> Result String Value
 valLeq l r =
   case (l, r) of
-    ((NumV lval), (NumV rval)) ->
-      Ok (BoolV (lval <= rval))
+    (NumV lval, NumV rval) ->
+      Ok (BoolV lval <= rval)
     _ ->
       Err "operand not a number"
 
@@ -140,11 +140,11 @@ valLeq l r =
 valEqual : Value -> Value -> Result String Value
 valEqual l r =
   case (l, r) of
-    ((NumV lval), (NumV rval)) ->
-      Ok (BoolV (lval == rval))
-    ((BoolV lval), (BoolV rval)) ->
-      Ok (BoolV (lval == rval))
-    ((StringV lval), (StringV rval)) ->
-      Ok (BoolV (lval == rval))
+    (NumV lval, NumV rval) ->
+      Ok (BoolV lval == rval)
+    (BoolV lval, BoolV rval) ->
+      Ok (BoolV lval == rval)
+    (StringV lval, StringV rval) ->
+      Ok (BoolV lval == rval)
     _ ->
       Ok (BoolV False)
