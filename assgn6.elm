@@ -2,7 +2,6 @@
 
 -- use this to print output after compilation
 import Dict exposing (..)
-import List exposing (length)
 import Html exposing (text)
 
 main =
@@ -56,17 +55,27 @@ interp e env =
           else (interp elsee env)
         _ -> Err "test clause not boolean"
     (LamC params body) -> (CloV params body env)
-    (AppC fun args) ->
+    (AppC fun app-args) ->
       case (interp fun env) of
         (PrimV op) ->
-          if (length args) == 2
-          then (op (interp (head args) env)
-                   (interp (tail args) env))
+          if (length app-args) == 2
+          then (op (interp (head app-args) env)
+                   (interp (tail app-args) env))
           else Err "primitive operation takes two arguments"
+        (CloV clo-args body clo-env) ->
+          if (length clo-args) == (length app-args)
+          then let
+            argvals = (map (\arg -> interp arg env) app-args)
+            let
+              newEnv = (extendEnv clo-env clo-args argvals)
+              in interp body newEnv
+          else Err "arity mismatch"
         _ -> Err "not supported"
 
 
 -- helper functions
+
+-- returns id from environment
 lookup : String -> Env -> Result String Value
 lookup id env =
   case (get id env) of
@@ -74,6 +83,18 @@ lookup id env =
       Ok val
     Nothing -> 
       Err "unbound identifier"
+
+
+-- takes env and list of string-value pairs and returns new env
+-- with inserted/updated pairs
+extendEnv : Env -> (List String) -> (List Value) -> Env
+extendEnv env strs vals =
+  let
+    newBindings = map2 (,) strs vals
+  in (foldl (\(str, val) ->
+            (insert str val env))
+      newBindings)
+
 
 
 -- primitive operations
