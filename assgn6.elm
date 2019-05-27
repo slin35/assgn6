@@ -47,6 +47,13 @@ interp e env =
     (NumC n) -> Ok (NumV n)
     (StringC str) -> Ok (StringV str)
     (IdC id) -> (lookup id env)
+    (IfC testt thenn elsee) ->
+      case (interp testt env) of
+        (BoolV bool) ->
+          if bool
+          then (interp thenn env)
+          else (interp elsee env)
+        _ -> Err "test clause not boolean"
     _ -> Err "exp not supported"
 
 
