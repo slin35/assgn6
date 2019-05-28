@@ -49,21 +49,13 @@ interp e env =
     AppC fun args ->
       case interp fun env of
         Ok (PrimV op) ->
-          if length args == 2
-          then case head args of
-            Just left ->
-              case tail args of
-                Just listOfOne ->
-                  case head listOfOne of
-                    Just right ->
-                      case ((interp left env), (interp right env)) of
-                        (Ok leftVal, Ok rightVal) ->
-                          op leftVal rightVal
-                        _ -> Err ""
-                    _ -> Err ""
-                _ -> Err ""
-            _ -> Err ""           
-          else Err "primitive operation takes two arguments"
+          case args of 
+            [ fst, snd ] ->
+              case ((interp fst env), (interp snd env)) of
+                (Ok left, Ok right) ->
+                  op left right
+                _ -> Err "error occurred"
+            _ -> Err "primitive operation takes two arguments"      
         _ -> Err "improper application"
 
 
@@ -77,17 +69,6 @@ lookup id env =
       Ok val
     Nothing -> 
       Err "unbound identifier"
-
-
--- takes env and list of string-value pairs and returns
--- new env with inserted/updated pairs
---extendEnv : Env -> (List String) -> (List Value) -> Env
---extendEnv env strs vals =
---  let
---    newBindings = (map2 (,) strs vals)
---  in foldl (\(str, val) ->
---            insert str val env)
---      newBindings
 
 
 -- primitive operations
