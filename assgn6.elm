@@ -1,4 +1,5 @@
-import Dict exposing (..)
+import Dict exposing (Dict, fromList, get)
+import List exposing (head, tail, length)
 
 -- type definitions
 type ExprC
@@ -34,32 +35,35 @@ topEnv = fromList [("true", BoolV True),
 interp : ExprC -> Env -> Result String Value
 interp e env =
   case e of
-    NumC n -> NumV n
-    StringC str -> StringV str
+    NumC n -> Ok (NumV n)
+    StringC str -> Ok (StringV str)
     IdC id -> lookup id env
     IfC test thn els ->
       case interp test env of
-        BoolV bool ->
+        Ok (BoolV bool) ->
           if bool
           then interp thn env
           else interp els env
         _ -> Err "test clause not boolean"
-    LamC params body -> CloV params body env
+    LamC params body -> Ok (CloV params body env)
     AppC fun args ->
       case interp fun env of
-        PrimV op ->
+        Ok (PrimV op) ->
           if length args == 2
-          then op (interp (head args) env)
-                  (interp (tail args) env)
+          then case head args of
+            Just left ->
+              case tail args of
+                Just listOfOne ->
+                  case head listOfOne of
+                    Just right ->
+                      case ((interp left env), (interp right env)) of
+                        (Ok leftVal, Ok rightVal) ->
+                          op leftVal rightVal
+                        _ -> Err ""
+                    _ -> Err ""
+                _ -> Err ""
+            _ -> Err ""           
           else Err "primitive operation takes two arguments"
-        CloV params body clo-env ->
-          if length params == length args
-          then let
-            argvals = map (\arg -> interp arg env) args
-            let
-              newEnv = extendEnv clo-env params argvals
-              in interp body newEnv
-          else Err "arity mismatch"
         _ -> Err "improper application"
 
 
@@ -77,13 +81,13 @@ lookup id env =
 
 -- takes env and list of string-value pairs and returns
 -- new env with inserted/updated pairs
-extendEnv : Env -> (List String) -> (List Value) -> Env
-extendEnv env strs vals =
-  let
-    newBindings = map2 (,) strs vals
-  in foldl (\(str, val) ->
-            insert str val env)
-      newBindings
+--extendEnv : Env -> (List String) -> (List Value) -> Env
+--extendEnv env strs vals =
+--  let
+--    newBindings = (map2 (,) strs vals)
+--  in foldl (\(str, val) ->
+--            insert str val env)
+--      newBindings
 
 
 -- primitive operations
@@ -93,7 +97,7 @@ valAdd : Value -> Value -> Result String Value
 valAdd l r =
   case (l, r) of
     (NumV lval, NumV rval) ->
-      Ok (NumV lval + rval)
+      Ok (NumV (lval + rval))
     _ ->
       Err "operand not a number"
 
@@ -102,7 +106,7 @@ valSub : Value -> Value -> Result String Value
 valSub l r =
   case (l, r) of
     (NumV lval, NumV rval) ->
-      Ok (NumV lval - rval)
+      Ok (NumV (lval - rval))
     _ ->
       Err "operand not a number"
 
@@ -111,7 +115,7 @@ valMult : Value -> Value -> Result String Value
 valMult l r =
   case (l, r) of
     (NumV lval, NumV rval) ->
-      Ok (NumV lval * rval)
+      Ok (NumV (lval * rval))
     _ ->
       Err "operand not a number"
 
@@ -122,7 +126,7 @@ valDiv l r =
     (NumV lval, NumV rval) ->
       if rval == 0
       then Err "divide by zero" 
-      else Ok (NumV lval - rval)
+      else Ok (NumV (lval / rval))
     _ ->
       Err "operand not a number"
 
@@ -131,7 +135,7 @@ valLeq : Value -> Value -> Result String Value
 valLeq l r =
   case (l, r) of
     (NumV lval, NumV rval) ->
-      Ok (BoolV lval <= rval)
+      Ok (BoolV (lval <= rval))
     _ ->
       Err "operand not a number"
 
@@ -140,10 +144,10 @@ valEqual : Value -> Value -> Result String Value
 valEqual l r =
   case (l, r) of
     (NumV lval, NumV rval) ->
-      Ok (BoolV lval == rval)
+      Ok (BoolV (lval == rval))
     (BoolV lval, BoolV rval) ->
-      Ok (BoolV lval == rval)
+      Ok (BoolV (lval == rval))
     (StringV lval, StringV rval) ->
-      Ok (BoolV lval == rval)
+      Ok (BoolV (lval == rval))
     _ ->
       Ok (BoolV False)
