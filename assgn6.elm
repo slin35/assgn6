@@ -88,7 +88,7 @@ extendEnv env strs vals =
 
 -- primitive operations
 
--- adds two values
+-- adds two numbers
 valAdd : Value -> Value -> Result String Value
 valAdd l r =
   case (l, r) of
@@ -97,7 +97,7 @@ valAdd l r =
     _ ->
       Err "operand not a number"
 
--- subtracts two values
+-- subtracts two numbers
 valSub : Value -> Value -> Result String Value
 valSub l r =
   case (l, r) of
@@ -106,7 +106,7 @@ valSub l r =
     _ ->
       Err "operand not a number"
 
--- multiplies two values
+-- multiplies two numbers
 valMult : Value -> Value -> Result String Value
 valMult l r =
   case (l, r) of
@@ -115,7 +115,7 @@ valMult l r =
     _ ->
       Err "operand not a number"
 
--- divides two values
+-- divides two numbers
 valDiv : Value -> Value -> Result String Value
 valDiv l r =
   case (l, r) of
@@ -126,7 +126,7 @@ valDiv l r =
     _ ->
       Err "operand not a number"
 
--- compares two values
+-- compares two numbers
 valLeq : Value -> Value -> Result String Value
 valLeq l r =
   case (l, r) of
