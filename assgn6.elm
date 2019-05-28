@@ -19,15 +19,14 @@ type Value
 type alias Env = Dict String Value
 
 topEnv : Env
-topEnv = (fromList [("true", BoolV True),
-                    ("false", BoolV False),
-                    ("+", PrimV valAdd),
-                    ("-", PrimV valSub),
-                    ("*", PrimV valMult),
-                    ("/", PrimV valDiv),
-                    ("<=", PrimV valLeq),
-                    ("equal?", PrimV valEqual)])
-
+topEnv = fromList [("true", BoolV True),
+                   ("false", BoolV False),
+                   ("+", PrimV valAdd),
+                   ("-", PrimV valSub),
+                   ("*", PrimV valMult),
+                   ("/", PrimV valDiv),
+                   ("<=", PrimV valLeq),
+                   ("equal?", PrimV valEqual)]
 
 -- top-level functions
 
@@ -38,30 +37,30 @@ interp e env =
     NumC n -> NumV n
     StringC str -> StringV str
     IdC id -> lookup id env
-    IfC testt thenn elsee ->
-      case interp testt env of
+    IfC test thn els ->
+      case interp test env of
         BoolV bool ->
           if bool
-          then interp thenn env
-          else interp elsee env
+          then interp thn env
+          else interp els env
         _ -> Err "test clause not boolean"
     LamC params body -> CloV params body env
-    AppC fun app-args ->
-      case (interp fun env) of
+    AppC fun args ->
+      case interp fun env of
         PrimV op ->
-          if length app-args == 2
-          then op (interp (head app-args) env)
-                  (interp (tail app-args) env)
+          if length args == 2
+          then op (interp (head args) env)
+                  (interp (tail args) env)
           else Err "primitive operation takes two arguments"
-        CloV clo-args body clo-env ->
-          if length clo-args == length app-args
+        CloV params body clo-env ->
+          if length params == length args
           then let
-            argvals = map (\arg -> interp arg env) app-args
+            argvals = map (\arg -> interp arg env) args
             let
-              newEnv = extendEnv clo-env clo-args argvals
+              newEnv = extendEnv clo-env params argvals
               in interp body newEnv
           else Err "arity mismatch"
-        _ -> Err "not supported"
+        _ -> Err "improper application"
 
 
 -- helper functions
@@ -76,8 +75,8 @@ lookup id env =
       Err "unbound identifier"
 
 
--- takes env and list of string-value pairs and returns new env
--- with inserted/updated pairs
+-- takes env and list of string-value pairs and returns
+-- new env with inserted/updated pairs
 extendEnv : Env -> (List String) -> (List Value) -> Env
 extendEnv env strs vals =
   let
