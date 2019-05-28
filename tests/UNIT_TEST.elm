@@ -31,12 +31,12 @@ suite =
             , test "interp AppC" <|
                 \() ->
                     Expect.equal (Ok (NumV 3)) (interp (AppC (IdC "+") [(NumC 1), (NumC 2)]) topEnv)
-  --          , test "interp AppC2" <| 
-    --            \() ->
-      --              Expect.equal (Ok (NumV 3)) (interp (AppC (LamC ["a", "b"] (AppC (IdC "+") [(IdC "a"), (IdC "b")])) [(NumC 1), (NumC 2)]) topEnv) 
-        --    , test "interp AppC3" <| 
-          --      \() ->
-            --        Expect.equal (Err "arity mismatch") (interp (AppC (LamC ["a", "b"] (AppC (IdC "+") [(IdC "a"), (IdC "b")])) [(NumC 2)]) topEnv)
+            , test "interp AppC2" <| 
+                \() ->
+                    Expect.equal (Ok (NumV 3)) (interp (AppC (LamC ["a", "b"] (AppC (IdC "+") [(IdC "a"), (IdC "b")])) [(NumC 1), (NumC 2)]) topEnv) 
+            , test "interp AppC3" <| 
+                \() ->
+                    Expect.equal (Err "arity mismatch") (interp (AppC (LamC ["a", "b"] (AppC (IdC "+") [(IdC "a"), (IdC "b")])) [(NumC 2)]) topEnv)
             , test "interp AppC4" <|
                 \() ->
                     Expect.equal (Err "primitive operation takes two arguments") (interp (AppC (IdC "+") [(NumC 1), (NumC 2), (NumC 3)]) topEnv)
